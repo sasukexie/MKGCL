@@ -2,5 +2,6 @@
 log/
 log_tensorboard/
 saved/
+dataset/
 .ipynb_checkpoints/
 tests/
