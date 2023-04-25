@@ -149,10 +149,10 @@ class MKGCL(KnowledgeRecommender):
 
         # method
         self.migcl_data_aug = config['migcl_data_aug']  # sen
-        self.mmbcl_data_aug = config['mmbcl_data_aug']  # sen
+        self.mulcl_data_aug = config['mulcl_data_aug']  # sen
         self.r_data_aug = config['r_data_aug']  # sen
         self.open_migcl = config['open_migcl']  # True/False
-        self.open_mmbcl = config['open_mmbcl']  # True/False
+        self.open_mulcl = config['open_mulcl']  # True/False
         self.open_r = config['open_r']  # True/False
 
         # mulcl
@@ -193,7 +193,7 @@ class MKGCL(KnowledgeRecommender):
             self.r_x = self.r_noise_base + torch.zeros(self.train_batch_size // 8, 64, dtype=torch.float32,
                                                        device=self.device)  # 0.01
 
-        if self.open_mmbcl:
+        if self.open_mulcl:
             self.u_x = self.u_noise_base + torch.zeros(self.train_batch_size // 8, 128, dtype=torch.float32,
                                                        device=self.device)  # 0.01
             self.e_x = self.e_noise_base + torch.zeros(self.train_batch_size, 128, dtype=torch.float32,
@@ -317,11 +317,11 @@ class MKGCL(KnowledgeRecommender):
         if self.open_migcl:
             loss += self.calculate_migcl_loss(interaction, batch_idx, user, pos_item, u_embeddings, pos_i_embeddings)
         # mulcl loss
-        if self.open_mmbcl:
-            if str.startswith(self.mmbcl_data_aug, 'sen'):
-                loss += self.calculate_mmbcl_loss_by_sen(batch_idx, user, u_embeddings, pos_i_embeddings)
-            elif str.startswith(self.mmbcl_data_aug, 'gen'):
-                loss += self.calculate_mmbcl_loss_by_gen(batch_idx, user, u_embeddings, pos_i_embeddings, interaction,
+        if self.open_mulcl:
+            if str.startswith(self.mulcl_data_aug, 'sen'):
+                loss += self.calculate_mulcl_loss_by_sen(batch_idx, user, u_embeddings, pos_i_embeddings)
+            elif str.startswith(self.mulcl_data_aug, 'gen'):
+                loss += self.calculate_mulcl_loss_by_gen(batch_idx, user, u_embeddings, pos_i_embeddings, interaction,
                                                          pos_item, user_all_embeddings, entity_all_embeddings)
 
         return loss
@@ -479,8 +479,8 @@ class MKGCL(KnowledgeRecommender):
         pic_name = str(self.INDEX)
         if self.config['open_migcl']:
             pic_name = 'migcl_' + pic_name
-        if self.config['open_mmbcl']:
-            pic_name = 'mmbcl_' + pic_name
+        if self.config['open_mulcl']:
+            pic_name = 'mulcl_' + pic_name
         plt.savefig(r'/data/temp/{}.png'.format(pic_name))
         plt.close()
         self.INDEX += 1
@@ -524,7 +524,7 @@ class MKGCL(KnowledgeRecommender):
         loss = self.ce_loss(logits, labels)
         return loss
 
-    def calculate_mmbcl_loss_by_sen(self, batch_idx, user, u_embeddings, pos_i_embeddings):
+    def calculate_mulcl_loss_by_sen(self, batch_idx, user, u_embeddings, pos_i_embeddings):
         # calculate mulcl loss
 
         # A_in
@@ -550,15 +550,15 @@ class MKGCL(KnowledgeRecommender):
 
         # build small sen
         self.build_sen()
-        u_mmbcl_loss = self.mmbcl_loss(u_embedding, self.u_noise_q, self.u_noise_k, queue=self.u_queue,
+        u_mulcl_loss = self.mulcl_loss(u_embedding, self.u_noise_q, self.u_noise_k, queue=self.u_queue,
                                        queue_ptr=self.u_queue_ptr, K=self.u_K)
-        e_mmbcl_loss = self.mmbcl_loss(e_embedding, self.e_noise_q, self.e_noise_k, queue=self.e_queue,
+        e_mulcl_loss = self.mulcl_loss(e_embedding, self.e_noise_q, self.e_noise_k, queue=self.e_queue,
                                        queue_ptr=self.e_queue_ptr, K=self.e_K)
         ui_migcl_loss = self.migcl_loss(u_embeddings, pos_i_embeddings, batch_size=u_embeddings.shape[0])
-        loss += 0.01 * (u_mmbcl_loss + e_mmbcl_loss + ui_migcl_loss)  # 0.01
+        loss += 0.01 * (u_mulcl_loss + e_mulcl_loss + ui_migcl_loss)  # 0.01
         return loss
 
-    def calculate_mmbcl_loss_by_gen(self, batch_idx, user, u_embeddings, pos_i_embeddings, interaction, pos_item,
+    def calculate_mulcl_loss_by_gen(self, batch_idx, user, u_embeddings, pos_i_embeddings, interaction, pos_item,
                                     user_all_embeddings, entity_all_embeddings):
         # calculate mulcl loss
 
@@ -590,26 +590,26 @@ class MKGCL(KnowledgeRecommender):
         u_embeddings = self.projection_head_map(u_embeddings, self.mode)
         pos_i_embeddings = self.projection_head_map(pos_i_embeddings, 1 - self.mode)
 
-        u_mmbcl_loss = self.mmbcl_loss_by_gen(u_embedding_1, u_embedding_2, queue=self.u_queue,
+        u_mulcl_loss = self.mulcl_loss_by_gen(u_embedding_1, u_embedding_2, queue=self.u_queue,
                                               queue_ptr=self.u_queue_ptr, K=self.u_K)
-        # u_mmbcl_loss += self.algn_uniform_loss(batch_idx, 'mulcl:u-u', u_embedding_1, u_embedding_2)
-        e_mmbcl_loss = self.mmbcl_loss_by_gen(e_embedding_1, e_embedding_2, queue=self.e_queue,
+        # u_mulcl_loss += self.algn_uniform_loss(batch_idx, 'mulcl:u-u', u_embedding_1, u_embedding_2)
+        e_mulcl_loss = self.mulcl_loss_by_gen(e_embedding_1, e_embedding_2, queue=self.e_queue,
                                               queue_ptr=self.e_queue_ptr, K=self.e_K)
-        # e_mmbcl_loss += self.algn_uniform_loss(batch_idx, 'mulcl:e-e', e_embedding_1, e_embedding_2)
+        # e_mulcl_loss += self.algn_uniform_loss(batch_idx, 'mulcl:e-e', e_embedding_1, e_embedding_2)
         ui_migcl_loss = self.migcl_loss(u_embeddings, pos_i_embeddings, batch_size=u_embeddings.shape[0])
         ui_migcl_loss += self.algn_uniform_loss(batch_idx, 'mulcl:u-i', u_embeddings, pos_i_embeddings)
-        loss += 0.01 * (u_mmbcl_loss + e_mmbcl_loss + ui_migcl_loss)  # 0.01
+        loss += 0.01 * (u_mulcl_loss + e_mulcl_loss + ui_migcl_loss)  # 0.01
 
         self.representation(batch_idx, interaction, user, pos_item, user_all_embeddings, entity_all_embeddings)
         return loss
 
-    def mmbcl_loss(self, x, noise_q, noise_k, queue, queue_ptr, K):  # B * D    B * D
+    def mulcl_loss(self, x, noise_q, noise_k, queue, queue_ptr, K):  # B * D    B * D
         # data aug
         try:
-            if self.mmbcl_data_aug == 'sen_a':
+            if self.mulcl_data_aug == 'sen_a':
                 q = x + noise_q
                 k = x + noise_k
-            elif self.mmbcl_data_aug == 'sen_m':
+            elif self.mulcl_data_aug == 'sen_m':
                 q = torch.mul(x, 1 + noise_q)
                 k = torch.mul(x, 1 + noise_k)
         except Exception as e:
@@ -639,7 +639,7 @@ class MKGCL(KnowledgeRecommender):
         loss = self.ce_loss(logits, labels)
         return loss
 
-    def mmbcl_loss_by_gen(self, q, k, queue, queue_ptr, K):  # B * D    B * D
+    def mulcl_loss_by_gen(self, q, k, queue, queue_ptr, K):  # B * D    B * D
         q = nn.functional.normalize(q, dim=1)
         k = k.detach()
         k = nn.functional.normalize(k, dim=1)
@@ -954,19 +954,19 @@ class MKGCL(KnowledgeRecommender):
 
         # data augmentation
         A_in_1, A_in_2 = None, None
-        if 'ed' in [self.migcl_data_aug, self.mmbcl_data_aug]:
+        if 'ed' in [self.migcl_data_aug, self.mulcl_data_aug]:
             A_in_1 = self.data_aug_by_ed(indices, kg_score)
             A_in_2 = self.data_aug_by_ed(indices, kg_score)
-        elif 'gen_a:ed' in [self.migcl_data_aug, self.mmbcl_data_aug]:
+        elif 'gen_a:ed' in [self.migcl_data_aug, self.mulcl_data_aug]:
             A_in_1 = self.data_aug_by_eda(indices, kg_score)
             A_in_2 = self.data_aug_by_eda(indices, kg_score)
-        elif 'gen_m:ed' in [self.migcl_data_aug, self.mmbcl_data_aug]:
+        elif 'gen_m:ed' in [self.migcl_data_aug, self.mulcl_data_aug]:
             A_in_1 = self.data_aug_by_edm(indices, kg_score)
             A_in_2 = self.data_aug_by_edm(indices, kg_score)
-        elif 'gen_a' in [self.migcl_data_aug, self.mmbcl_data_aug]:
+        elif 'gen_a' in [self.migcl_data_aug, self.mulcl_data_aug]:
             A_in_1 = self.data_aug_by_gen_a(indices, kg_score)
             A_in_2 = self.data_aug_by_gen_a(indices, kg_score)
-        elif 'gen_m' in [self.migcl_data_aug, self.mmbcl_data_aug]:
+        elif 'gen_m' in [self.migcl_data_aug, self.mulcl_data_aug]:
             A_in_1 = self.data_aug_by_gen_m(indices, kg_score)
             A_in_2 = self.data_aug_by_gen_m(indices, kg_score)
 

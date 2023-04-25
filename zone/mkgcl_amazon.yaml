@@ -63,10 +63,10 @@ e_noise_base: 1e-3 #0.01
 r_noise_base: 1e-3 #0.01
 r_s_len: 1e-2 #0.01
 migcl_data_aug: 'sen_a' #ed;gen_a:ed,gen_m:ed,gen_agen_m;sen_a,sen_m
-mmbcl_data_aug: 'sen_a' #sen_a,sen_m
+mulcl_data_aug: 'sen_a' #sen_a,sen_m
 r_data_aug: 'sen_a' #sen_a,sen_m,r_s(Relation Substitute)
 open_migcl: True #True,False
-open_mmbcl: True #True,False
+open_mulcl: True #True,False
 open_r: True #True,False
 open_ali_uni: False,
 open_represent: True,

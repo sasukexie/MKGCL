@@ -48,12 +48,12 @@ if __name__ == '__main__':
         'epochs': 500,
         'train_batch_size': 4096,  # 4096
         'open_migcl': True,  # alignment
-        'open_mmbcl': False,  # uniformity
+        'open_mulcl': False,  # uniformity
         'open_ali_uni': False,
         'open_represent': False,
         'open_r': False,
         'migcl_data_aug': 'sen_a',  # ed;gen_a:ed,gen_m:ed,gen_agen_m;sen_a,sen_m
-        'mmbcl_data_aug': 'gen_a',  # sen_a,sen_m,gen_a,gen_m
+        'mulcl_data_aug': 'gen_a',  # sen_a,sen_m,gen_a,gen_m
         'r_data_aug': 'r_s',  # sen_a,sen_m,r_s(Relation Substitute)
         'mini_batch_size_mul': 32,  # 32
         'noise_base_a': 10,
