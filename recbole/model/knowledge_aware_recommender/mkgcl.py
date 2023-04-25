@@ -155,7 +155,7 @@ class MKGCL(KnowledgeRecommender):
         self.open_mmbcl = config['open_mmbcl']  # True/False
         self.open_r = config['open_r']  # True/False
 
-        # mmbcl
+        # mulcl
         self.temperature1 = config['temperature1']  # config['T'],0.007,1.0,0.5,0.1,2
         self.temperature2 = config['temperature2']  # config['T'],0.007,1.0,0.5,0.1,2
 
@@ -316,7 +316,7 @@ class MKGCL(KnowledgeRecommender):
         # migcl loss
         if self.open_migcl:
             loss += self.calculate_migcl_loss(interaction, batch_idx, user, pos_item, u_embeddings, pos_i_embeddings)
-        # mmbcl loss
+        # mulcl loss
         if self.open_mmbcl:
             if str.startswith(self.mmbcl_data_aug, 'sen'):
                 loss += self.calculate_mmbcl_loss_by_sen(batch_idx, user, u_embeddings, pos_i_embeddings)
@@ -525,7 +525,7 @@ class MKGCL(KnowledgeRecommender):
         return loss
 
     def calculate_mmbcl_loss_by_sen(self, batch_idx, user, u_embeddings, pos_i_embeddings):
-        # calculate mmbcl loss
+        # calculate mulcl loss
 
         # A_in
         user_all_embeddings, entity_all_embeddings = self.forward(self.A_in)
@@ -560,7 +560,7 @@ class MKGCL(KnowledgeRecommender):
 
     def calculate_mmbcl_loss_by_gen(self, batch_idx, user, u_embeddings, pos_i_embeddings, interaction, pos_item,
                                     user_all_embeddings, entity_all_embeddings):
-        # calculate mmbcl loss
+        # calculate mulcl loss
 
         # A_in_1
         user_all_embeddings_1, entity_all_embeddings_1 = self.forward(self.A_in_1)
@@ -592,12 +592,12 @@ class MKGCL(KnowledgeRecommender):
 
         u_mmbcl_loss = self.mmbcl_loss_by_gen(u_embedding_1, u_embedding_2, queue=self.u_queue,
                                               queue_ptr=self.u_queue_ptr, K=self.u_K)
-        # u_mmbcl_loss += self.algn_uniform_loss(batch_idx, 'mmbcl:u-u', u_embedding_1, u_embedding_2)
+        # u_mmbcl_loss += self.algn_uniform_loss(batch_idx, 'mulcl:u-u', u_embedding_1, u_embedding_2)
         e_mmbcl_loss = self.mmbcl_loss_by_gen(e_embedding_1, e_embedding_2, queue=self.e_queue,
                                               queue_ptr=self.e_queue_ptr, K=self.e_K)
-        # e_mmbcl_loss += self.algn_uniform_loss(batch_idx, 'mmbcl:e-e', e_embedding_1, e_embedding_2)
+        # e_mmbcl_loss += self.algn_uniform_loss(batch_idx, 'mulcl:e-e', e_embedding_1, e_embedding_2)
         ui_migcl_loss = self.migcl_loss(u_embeddings, pos_i_embeddings, batch_size=u_embeddings.shape[0])
-        ui_migcl_loss += self.algn_uniform_loss(batch_idx, 'mmbcl:u-i', u_embeddings, pos_i_embeddings)
+        ui_migcl_loss += self.algn_uniform_loss(batch_idx, 'mulcl:u-i', u_embeddings, pos_i_embeddings)
         loss += 0.01 * (u_mmbcl_loss + e_mmbcl_loss + ui_migcl_loss)  # 0.01
 
         self.representation(batch_idx, interaction, user, pos_item, user_all_embeddings, entity_all_embeddings)
